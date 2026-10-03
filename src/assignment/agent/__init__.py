@@ -1,9 +1,13 @@
 """Starter implementations for the shared ReAct loop and its two agents.
+共享 ReAct 循环及其两个代理的入门实现
 
 Part 1 completes the generic loop (``base.py``) and the coding-agent tool
 executor (``code_agent.py``). Part 2 adds context compaction to that loop. Part
 3 reuses it and implements one new domain tool, ``play_move``
 (``chess_agent.py``).
+第 1 部分完成了通用循环（``base.py``）和编码代理工具执行器（``code_agent.py``）。
+第 2 部分向该循环添加了上下文压缩功能。
+第3 部分复用该循环，并实现了一个新的领域工具 ``play_move``（``chess_agent.py``）。
 """
 
 from assignment.agent.base import (

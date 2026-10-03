@@ -173,7 +173,8 @@ class Agent:
         raise NotImplementedError
 
     def query_language_model(self) -> dict[str, Any]:
-        """Send one tool-enabled Chat Completions request and normalize it."""
+        """Send one tool-enabled Chat Completions request and normalize it.
+        发送一条支持工具的聊天补全请求，并对其进行规范化处理"""
 
         messages = self.build_prompt()
         self.api_prompts.append(deepcopy(messages))
@@ -356,6 +357,24 @@ class Agent:
             #提示语言模型生成推理和动作，提取模型生成的工具调用，并执行这些工具调用以获取代理在下一步的观察结果。
             #请务必通过设置 `Agent.finished` 来标识代理何时完成任务。
             #如果代理超过了 `step_limit`，则引发 `StepLimitError`。
+            while not self.finished:
+                #检查有没有达到步数限制
+                if self.steps_taken >= self.step_limit:
+                    raise StepLimitError(f"超出了步数限制，步数限制为{self.step_limit}")
+
+                # 请求模型（内部已做：build_prompt → API → steps_taken += 1 → 解析）
+                message = self.query_language_model()
+
+                # assistant 消息进对话历史（无论有没有 tool_calls 都要进！）
+                self.interaction_history.append(message)
+
+                #处理tool calls
+                tool_calls = message.get("tool_calls") or [] #or[] 表示把none替换成[]
+                if not tool_calls:
+                    self.finish = True #模型没有tool call视为任务完成
+                    break
+                tool_messages = self.execute_tool_calls(tool_calls)
+                self.interaction_history.append(tool_messages)
 
             # TODO(2.2) Call `maybe_compact_context()` before each new action
             # request in your shared loop. It already estimates active tokens

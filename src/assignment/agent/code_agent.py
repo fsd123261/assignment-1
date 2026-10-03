@@ -45,10 +45,10 @@ class CodeAgent(Agent):
         self.task = task
         self.submitted_patch = ""
 
-        # TODO(Part 1.3): Make the `execute` and `send_message` tools available
-        # to the agent.
+        # TODO(Part 1.3): Make the `execute` and `send_message` tools available to the agent.
+        #让代理能够使用 `execute` 和 `send_message` 工具。
 
-        # TODO(1.1.b): Construct the system prompt and task_prompt. These
+        # √TODO(1.1.b): Construct the system prompt and task_prompt. These
         # should be usable by the `Agent.build_prompt` method.
         #构建系统提示和任务提示。这些提示应可被 `Agent.build_prompt` 方法使用
         self.system_prompt=(

@@ -26,6 +26,7 @@ EXECUTE_TOOL = {
         ),
         # The nested env object intentionally accepts arbitrary variable names,
         # which is incompatible with strict schemas on some providers.
+        #嵌套的 env 对象特意允许使用任意变量名，这与某些提供商的严格模式不兼容。
         "strict": False,
         "parameters": {
             "type": "object",
