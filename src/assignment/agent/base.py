@@ -159,19 +159,6 @@ class Agent:
         
         self.interaction_history: list[dict[str, Any]] = [] #对应OpenAI messages 格式
 
-    def build_prompt(self) -> list[dict[str, Any]]:
-        message:list[dict[str, Any]]=[]
-        # 1) standing instructions（常驻指令）
-        if self.system_prompt:
-            message.append({"role":"system","content":self.system_prompt})
-        # 2) task specification（任务说明）
-        if self.task_prompt:
-            message.append({"role":"user","content":self.task_prompt})
-        # 3) prior interaction（之前所有轮次的动作与观察）
-        message.extend(deepcopy(self.interaction_history))
-        
-        return message
-
     def load_skills(self, skills_path: Path) -> dict[str, dict[str, str]]:
         """Load the skill folders exposed to this agent."""
 
@@ -249,8 +236,19 @@ class Agent:
         # You want to be careful about which attributes of the class you modify
         # here as they may also be handled by the subclasses.
         #在此修改类中的属性时需谨慎，因为这些属性也可能由子类处理。
-
-        raise NotImplementedError
+        
+        message:list[dict[str, Any]]=[]
+        # 1) standing instructions（常驻指令）
+        if self.system_prompt:
+            message.append({"role":"system","content":self.system_prompt})
+        # 2) task specification（任务说明）
+        if self.task_prompt:
+            message.append({"role":"user","content":self.task_prompt})
+        # 3) prior interaction（之前所有轮次的动作与观察）
+        message.extend(deepcopy(self.interaction_history))
+        
+        return message
+       
 
     def estimate_active_prompt_tokens(self) -> int:
         """Estimate the next prompt, calibrated by the provider's latest usage."""
@@ -343,7 +341,8 @@ class Agent:
         return True
 
     def run(self) -> None:
-        """Run ReAct steps, always saving the trajectory and stopping Modal."""
+        """Run ReAct steps, always saving the trajectory and stopping Modal.
+        执行 ReAct 步骤，始终保存轨迹并停止 Modal。"""
 
         try:
             # TODO(1.2) Run the ReAct loop. Orchestrate the sequence of
@@ -353,6 +352,10 @@ class Agent:
             # step. Ensure you identify when the agent has completed the task
             # by setting `Agent.finished`. If the agent exceeds the
             # `step_limit`, raise `StepLimitError`.
+            #运行 ReAct 循环。协调以下操作序列：
+            #提示语言模型生成推理和动作，提取模型生成的工具调用，并执行这些工具调用以获取代理在下一步的观察结果。
+            #请务必通过设置 `Agent.finished` 来标识代理何时完成任务。
+            #如果代理超过了 `step_limit`，则引发 `StepLimitError`。
 
             # TODO(2.2) Call `maybe_compact_context()` before each new action
             # request in your shared loop. It already estimates active tokens
@@ -363,6 +366,7 @@ class Agent:
         finally:
             # This block is provided infrastructure. Do not modify it: a
             # trajectory is required even when a run fails.
+            #此模块已提供基础架构。请勿对其进行修改：即使运行失败，也必须提供一条轨迹。
             if self.logs_save_path:
                 path = Path(self.logs_save_path)
                 path.parent.mkdir(parents=True, exist_ok=True)
