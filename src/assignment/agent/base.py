@@ -2,6 +2,7 @@
 
 Part 1 completes the generic loop here; the two subclasses in this package
 supply only their own tools and tool executors.
+第1部分在这里完成了通用循环；这个包里的两个子类只提供它们自己的工具和工具执行器。
 """
 
 from __future__ import annotations
@@ -65,19 +66,19 @@ def rough_message_tokens(messages: list[dict[str, Any]]) -> int:
 
 
 class Agent:
-    """Base class for a ReAct agent with pluggable tools."""
-
+    """Base class for a ReAct agent with pluggable tools.带可插拔工具的 ReAct 代理基类"""
+    #def init(里面是传入的参数):self.属性名
     def __init__(
         self,
         environment: Environment,
-        model: str | None = None,
-        logs_save_path: str | None = None,
-        step_limit: int = 100,
-        skills_path: str | None = None,
-        auto_stop_environment: bool = True,
-        compact_threshold_tokens: int | None = None,
-        compaction_keep_recent_steps: int = DEFAULT_COMPACTION_KEEP_RECENT_STEPS,
-        compaction_max_tokens: int = DEFAULT_COMPACTION_MAX_TOKENS,
+        model: str | None = None,  #LLM 模型名
+        logs_save_path: str | None = None,  #日志落盘目录
+        step_limit: int = 100, #最大步数限制
+        skills_path: str | None = None,  #技能目录的路径
+        auto_stop_environment: bool = True,  #agent 结束后，是否自动释放 environment
+        compact_threshold_tokens: int | None = None, #触发压缩的 token 阈值
+        compaction_keep_recent_steps: int = DEFAULT_COMPACTION_KEEP_RECENT_STEPS, #压缩时保留最近几步不动
+        compaction_max_tokens: int = DEFAULT_COMPACTION_MAX_TOKENS, #压缩产出的摘要本身的大小上限
     ):
         self.env = environment
         self.model = model or os.environ.get("OPENAI_MODEL")
@@ -118,6 +119,8 @@ class Agent:
         # A None threshold turns compaction off. The other two settings then
         # describe a compaction that never happens, so fall back to the
         # defaults rather than leaving a None for later code to trip over.
+        #阈值设为 None 会禁用压缩，其余两个设置描述的压缩操作永远不会发生。
+        #因此应回退到默认值，而不是留一个 None 导致后续代码出错。
         self.compact_threshold_tokens = compact_threshold_tokens
         self.compaction_keep_recent_steps = (
             DEFAULT_COMPACTION_KEEP_RECENT_STEPS
@@ -132,6 +135,7 @@ class Agent:
 
         # Each agent supplies its own opening messages: the standing
         # instructions, and the task statement that starts the run.
+        #每个代理都会提供自己的开场信息：常规指令和启动运行的任务说明。
         self.system_prompt: str = ""
         self.task_prompt: str = ""
 
@@ -151,7 +155,22 @@ class Agent:
             self.tools.append(INVOKE_SKILL_TOOL)
 
         # TODO(1.1.a): Add machinery to maintain agent state as it takes actions
-        # and observes the results.
+        # and observes the results.添加机制来维护代理的状态，当它执行动作并观察结果时。
+        
+        self.interaction_history: list[dict[str, Any]] = [] #对应OpenAI messages 格式
+
+    def build_prompt(self) -> list[dict[str, Any]]:
+        message:list[dict[str, Any]]=[]
+        # 1) standing instructions（常驻指令）
+        if self.system_prompt:
+            message.append({"role":"system","content":self.system_prompt})
+        # 2) task specification（任务说明）
+        if self.task_prompt:
+            message.append({"role":"user","content":self.task_prompt})
+        # 3) prior interaction（之前所有轮次的动作与观察）
+        message.extend(deepcopy(self.interaction_history))
+        
+        return message
 
     def load_skills(self, skills_path: Path) -> dict[str, dict[str, str]]:
         """Load the skill folders exposed to this agent."""
@@ -224,9 +243,13 @@ class Agent:
         # and actions from previous turns. Note that this method should be
         # domain-agnostic and construct the prompt in a way that would apply
         # to any of the inheriting domain-specific agents.
-
+        # 构建一组消息序列，以此形成语言模型的提示。该序列应包含常驻指令、任务说明，
+        #以及先前交互内容（包括观察结果、推理和前几轮的行动）。请注意，此方法应与领域无关，
+        #且构建提示的方式应适用于任何继承该方法的领域特定代理。
         # You want to be careful about which attributes of the class you modify
         # here as they may also be handled by the subclasses.
+        #在此修改类中的属性时需谨慎，因为这些属性也可能由子类处理。
+
         raise NotImplementedError
 
     def estimate_active_prompt_tokens(self) -> int:

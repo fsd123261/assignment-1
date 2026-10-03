@@ -1,4 +1,5 @@
-"""The Part 1 coding agent: fix a software issue and submit a git patch."""
+"""The Part 1 coding agent: fix a software issue and submit a git patch.
+第 1 部分 编码任务：修复一个软件问题并提交一个 Git 补丁"""
 
 from __future__ import annotations
 
@@ -14,7 +15,8 @@ from assignment.agent.tools import EXECUTE_TOOL, SEND_MESSAGE_TOOL
 from assignment.env import Environment
 
 class CodeAgent(Agent):
-    """An agent that fixes a software issue and submits a git patch."""
+    """An agent that fixes a software issue and submits a git patch.
+    负责修复软件问题并提交 Git 补丁的agent"""
 
     def __init__(
         self,
@@ -48,6 +50,22 @@ class CodeAgent(Agent):
 
         # TODO(1.1.b): Construct the system prompt and task_prompt. These
         # should be usable by the `Agent.build_prompt` method.
+        #构建系统提示和任务提示。这些提示应可被 `Agent.build_prompt` 方法使用
+        self.system_prompt=(
+            "You are a coding agent. You interact with a Linux sandbox through "
+            "tools: use the `execute` tool to run shell commands, inspect the "
+            "repository, fix the issue, and verify your fix. Think step by step, "
+            "act one command at a time, and submit a git patch when done.\n\n"
+            f"<system_information>\n"
+            f"{{\n"
+            f'  "machine": "{self.env.machine}",\n'
+            f'  "release": "{self.env.release}",\n'
+            f'  "system": "{self.env.system}",\n'
+            f'  "version": "{self.env.version}"\n'
+            f"}}\n"
+            f"</system_information>"
+        )
+        self.task_prompt=self.task
         # TODO(1.4): If any skills are available to the agent, make their
         # descriptions/metadata available to the agent in the prompt.
 
