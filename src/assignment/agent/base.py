@@ -155,7 +155,7 @@ class Agent:
         if self.skills:
             self.tools.append(INVOKE_SKILL_TOOL)
 
-        # TODO(1.1.a): Add machinery to maintain agent state as it takes actions
+        # √TODO(1.1.a): Add machinery to maintain agent state as it takes actions
         # and observes the results.添加机制来维护代理的状态，当它执行动作并观察结果时。
         
         self.interaction_history: list[dict[str, Any]] = [] #对应OpenAI messages 格式
@@ -163,7 +163,7 @@ class Agent:
     def load_skills(self, skills_path: Path) -> dict[str, dict[str, str]]:
         """Load the skill folders exposed to this agent."""
 
-        # TODO(1.4): Validate ``skills_path``, discover one ``SKILL.md``
+        # √TODO(1.4): Validate ``skills_path``, discover one ``SKILL.md``
         # per child directory, parse its YAML frontmatter (what's between the
         # `---` tags at the head of the file), and return a mapping
         # keyed by the frontmatter ``name``. Each value must contain a concise
@@ -171,7 +171,53 @@ class Agent:
         # ``content`` of the skill file for ``invoke_skill``. Reject duplicate
         # names and malformed or missing frontmatter with a clear
         # ``ValueError``.
-        raise NotImplementedError
+        #验证 ``skills_path``，在每个子目录中查找一个 ``SKILL.md`` 文件，
+        #解析其 YAML 前置信息（即文件开头 `---` 标签之间的内容），并返回一个以前置信息中的 ``name`` 为键的映射。
+        #每个值必须包含用于模型技能目录的简明 ``metadata`` 字符串，以及供 ``invoke_skill`` 使用的技能文件的完整 ``content``。
+        #对于重复的名称以及格式错误或缺失的前置信息，应抛出明确的 ``ValueError`` 异常。
+        
+        # ---- ① 校验路径：必须存在且是目录 ----
+        if not skills_path.is_dir():
+            raise ValueError("skills目录不存在")
+
+        skills:dict[str,dict[str,str]] = {}
+        
+        # ---- ② 遍历每个子目录，每个子目录应有一个 SKILL.md ----
+        for skill_dir in sorted(skills_path.iterdir()):
+            if not skill_dir.is_dir():
+                continue
+            skillmd=skill_dir/"SKILL.md"
+            
+            if not skillmd.is_file():
+                raise ValueError(f"在{skill_dir}未找到skill.md")
+            
+            # ---- ③ 解析 YAML frontmatter（文件头 --- 到 --- 之间）----
+            content = skillmd.read_text(encoding="utf-8")
+            if not content.startswith("---"):
+                raise ValueError(f"Missing frontmatter in {skillmd}")
+            end = content.find("\n---",3)# 找第二个 "---"：frontmatter 的结束标记
+            if end == -1:
+                raise ValueError(f"malformed frontmatter in {skillmd}")    
+            frontmatter_text = content[3:end].strip()
+
+            #逐行解析frontmatter，变成简单的 "key: value" 格式
+            frontmatter:dict[str,str]={}
+            for line in frontmatter_text.splitlines():
+                key,_,value = line.partition(":")
+                frontmatter[key.strip()] = value.strip()
+            name = frontmatter.get("name")
+            description = frontmatter.get("description")
+
+            if name in skills:
+                raise ValueError(f"Duplicate skill name: {name}")
+
+            # ---- ④ 组装：metadata 是给目录用的简短串，content 是全文 ----
+            skills[name] = {
+                "metadata":f"name:{name}\ndescription:{description}",
+                "content":content
+            }
+        return skills   
+
 
     def query_language_model(self) -> dict[str, Any]:
         """Send one tool-enabled Chat Completions request and normalize it.
@@ -226,7 +272,7 @@ class Agent:
         return response.choices[0].message.model_dump(exclude_none=True)
 
     def build_prompt(self) -> list[dict[str, Any]]:
-        # TODO(1.1.a): Construct a sequence of messages that form the language
+        # √TODO(1.1.a): Construct a sequence of messages that form the language
         # model prompt. This should include standing instructions, task
         # specification, prior interaction including observations, reasoning,
         # and actions from previous turns. Note that this method should be
@@ -347,7 +393,7 @@ class Agent:
         执行 ReAct 步骤，始终保存轨迹并停止 Modal。"""
 
         try:
-            # TODO(1.2) Run the ReAct loop. Orchestrate the sequence of
+            # √TODO(1.2) Run the ReAct loop. Orchestrate the sequence of
             # prompting the language model to produce reasoning and actions,
             # extracting the tool calls produced by the model, and executing
             # the tool calls to obtain the agent's observation for the next
