@@ -39,7 +39,8 @@ class StepLimitError(Exception):
 
 
 def format_tool_output(output: dict[str, Any]) -> str:
-    """Format a terminal result as a compact, tagged model observation."""
+    """Format a terminal result as a compact, tagged model observation.
+    将终端结果格式化为紧凑的、带标签的模型观测值"""
 
     elements: list[str] = []
     for key in sorted(output):
@@ -407,8 +408,10 @@ class Agent:
     def execute_tool_calls(
         self, tool_calls: list[dict[str, Any]]
     ) -> list[dict[str, str]]:
-        """Execute domain-specific calls and return linked tool observations."""
+        """Execute domain-specific calls and return linked tool observations.
+        执行特定领域的调用，并返回关联工具的观测结果。"""
 
         # You do not need to implement anything here. This method is
         # domain-specific and implemented by the relevant subclasses
+        #此处无需实现任何内容。该方法是领域特定的，由相关的子类来实现
         raise NotImplementedError
