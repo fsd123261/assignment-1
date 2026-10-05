@@ -247,6 +247,10 @@ class Agent:
             raise
         self.api_responses.append(response.model_dump(mode="json"))
         self.steps_taken += 1
+
+        #  临时调试：打印原始响应
+        # print("[DEBUG] raw response:", response.model_dump_json()[:2000])
+
         message = self.process_response(response)
         tool_names = [
             call.get("function", {}).get("name", "unknown")
@@ -418,17 +422,16 @@ class Agent:
                 #处理tool calls
                 tool_calls = message.get("tool_calls") or [] #or[] 表示把none替换成[]
                 if not tool_calls:
-                    self.finish = True #模型没有tool call视为任务完成
-                    break
+                  continue
                 tool_messages = self.execute_tool_calls(tool_calls)
-                self.interaction_history.append(tool_messages)
+                self.interaction_history.extend(tool_messages)
 
             # TODO(2.2) Call `maybe_compact_context()` before each new action
             # request in your shared loop. It already estimates active tokens
             # and handles the threshold, and tracks compaction events for
             # logging.
 
-            raise NotImplementedError
+            
         finally:
             # This block is provided infrastructure. Do not modify it: a
             # trajectory is required even when a run fails.

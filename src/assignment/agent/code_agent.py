@@ -136,7 +136,16 @@ class CodeAgent(Agent):
                 content = format_tool_output(result)
             
             elif name=="send_message":
-                content=f"Message sent to user:{arguments.get("summery","")}"
+                self.finished = True
+                content=f"Message sent to user:{arguments.get("summary","")}"
+            
+            elif name=="invoke_skill":
+                skill_name = arguments.get("name","")
+                skill = self.skills.get(skill_name)
+                if skill is None:
+                    content=f"Error:unkown skill {skill_name}"
+                else:
+                    content=skill["content"]
             
             else:
                 content=f"Error: unknown tool '{name}'."
